@@ -15,6 +15,7 @@ namespace LibraryService.Models
         [Required]
         public string Title { get; set; }
 
-        public ApplicationUser CheckedOutTo { get; set; }
+        public List<PhysicalBook> PhysicalBooks { get; set; }
+
     }
 }
