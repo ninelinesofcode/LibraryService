@@ -34,14 +34,14 @@ namespace LibraryService.Controllers
             return db.Books.Select(b => new BookViewModel { Author = b.Author, Title = b.Title, Id = b.Id });
         }
 
-        // GET: api/Books/5
+
         [ResponseType(typeof(IEnumerable<CheckedOutBookViewModel>))]
         [Route("api/user/books")]
         public async Task<IHttpActionResult> GetCheckedOutBooks()
         {
             var currentUser = await manager.FindByIdAsync(User.Identity.GetUserId());
-            var booksCheckedOut= currentUser.BooksCheckedOut;
-            
+            var booksCheckedOut = currentUser.BooksCheckedOut;
+
             if (booksCheckedOut == null)
             {
                 return NotFound();
@@ -51,16 +51,78 @@ namespace LibraryService.Controllers
                 booksCheckedOut.Select(
                     b =>
                         new CheckedOutBookViewModel
-                        {
-                            Author = b.Book.Author,
-                            BookId = b.Book.Id,
-                            Title = b.Book.Title,
-                            UserName = currentUser.UserName
-                        });
+            {
+                Author = b.Book.Author,
+                BookId = b.Book.Id,
+                Title = b.Book.Title,
+                UserName = currentUser.UserName
+            });
 
             return Ok(checkedOutBookViewModel);
         }
 
+        [ResponseType(typeof(IEnumerable<CheckedOutBookViewModel>))]
+        [Route("api/books/{bookId}/checkout/user")]
+        [HttpPost]
+        public async Task<IHttpActionResult> CheckoutBook(int? bookId)
+        {
+            if (!bookId.HasValue)
+            {
+                return BadRequest("Invalid bookId");
+            }
+
+            var currentUser = await manager.FindByIdAsync(User.Identity.GetUserId());
+            var booksCheckedOut = currentUser.BooksCheckedOut;
+
+            if (booksCheckedOut != null && booksCheckedOut.Count >= 3)
+            {
+                return BadRequest("The users already has 3 books checked out");
+            }
+
+            var book = await db.Books
+                .FirstOrDefaultAsync(b => b.Id == bookId);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            var physicalBook = book.PhysicalBooks
+                .FirstOrDefault(p => p.User == null);
+            if (physicalBook == null)
+            {
+                return BadRequest("Book is already checked out");
+            }
+
+            physicalBook.User = currentUser;
+            await db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [ResponseType(typeof(IEnumerable<CheckedOutBookViewModel>))]
+        [Route("api/books/{bookId}/checkin/user")]
+        [HttpPost]
+        public async Task<IHttpActionResult> CheckinBook(int? bookId)
+        {
+            if (!bookId.HasValue)
+            {
+                return BadRequest("Invalid bookId");
+            }
+
+            var userId = User.Identity.GetUserId();
+            var physicalBook = await db.PhysicalBooks
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.User.Id == userId);
+            if (physicalBook == null)
+            {
+                return NotFound();
+            }
+
+            physicalBook.User = null;
+            await db.SaveChangesAsync();
+
+            return Ok();
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)
