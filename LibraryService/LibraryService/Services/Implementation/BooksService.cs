@@ -8,10 +8,11 @@ using System.Web;
 using LibraryService.ViewModels;
 using LibraryService.Models;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace LibraryService.Services.Implementation
 {
-    public class BooksService
+    public class BooksService : IBooksService
     {
         private readonly ApplicationDbContext _context;
 
@@ -22,7 +23,7 @@ namespace LibraryService.Services.Implementation
             _manager = manager;
             _context = context;
         }
-
+        
         public IEnumerable<BookViewModel> GetAllBooks()
         {
 

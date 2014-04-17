@@ -22,19 +22,13 @@ namespace LibraryService.Controllers
     [Authorize]
     public class BooksController : ApiController
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
-        private UserManager<ApplicationUser> manager;
-        private BooksService booksService;
+        private IBooksService booksService;
 
-        public BooksController()
+        public BooksController(IBooksService booksService)
         {
-            manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(db));
-
-            booksService = new BooksService(db, manager);
+            this.booksService = booksService;
         }
-
-
-
+        
         // GET: api/Books
         [AllowAnonymous]
         public IEnumerable<BookViewModel> GetBooks()
@@ -78,14 +72,6 @@ namespace LibraryService.Controllers
 
             await booksService.CheckInBook(bookId.Value, User);
             return Ok();
-        }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }
