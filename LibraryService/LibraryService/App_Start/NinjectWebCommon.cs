@@ -1,3 +1,4 @@
+using System.Data.Entity;
 using LibraryService.Models;
 using LibraryService.Services.Implementation;
 using Microsoft.AspNet.Identity;
@@ -67,8 +68,10 @@ namespace LibraryService.App_Start
         private static void RegisterServices(IKernel kernel)
         {
             kernel.Bind<IBooksService>().To<BooksService>().InRequestScope();
+            kernel.Bind<DbContext>().To<ApplicationDbContext>().InRequestScope();
             kernel.Bind<ApplicationDbContext>().To<ApplicationDbContext>().InRequestScope();
             kernel.Bind<IUserStore<ApplicationUser>>().To<UserStore<ApplicationUser>>().InRequestScope();
+            kernel.Bind<UserManager<ApplicationUser>>().To<UserManager<ApplicationUser>>().InRequestScope();
         }        
     }
 }

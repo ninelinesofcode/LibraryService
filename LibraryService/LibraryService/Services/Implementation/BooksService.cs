@@ -15,15 +15,15 @@ namespace LibraryService.Services.Implementation
     public class BooksService : IBooksService
     {
         private readonly ApplicationDbContext _context;
+        private BookRepository _repository;
 
-        private readonly UserManager<ApplicationUser> _manager;
 
-        public BooksService(ApplicationDbContext context, UserManager<ApplicationUser> manager)
+        public BooksService(ApplicationDbContext context, BookRepository repository)
         {
-            _manager = manager;
+            _repository = repository;
             _context = context;
         }
-        
+
         public IEnumerable<BookViewModel> GetAllBooks()
         {
 
@@ -32,24 +32,19 @@ namespace LibraryService.Services.Implementation
 
         public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks(IPrincipal user)
         {
-            var currentUser = await _manager.FindByIdAsync(user.Identity.GetUserId());
-            var booksCheckedOut = currentUser.BooksCheckedOut;
-
-            if (booksCheckedOut == null)
-            {
-                return null;
-            }
+            var currentUserId = user.Identity.GetUserId();
+            var booksCheckedOut = await _repository.GetCheckedOutBooks(currentUserId);
 
             var checkedOutBookViewModel =
                 booksCheckedOut.Select(
                     b =>
                         new CheckedOutBookViewModel
             {
-                Author = b.Book.Author,
-                BookId = b.Book.Id,
-                Title = b.Book.Title,
-                UserName = currentUser.UserName
-            });
+                Author = b.Author,
+                BookId = b.BookId,
+                Title = b.Title,
+                UserName = user.Identity.GetUserName()
+            }).ToList();
 
             return checkedOutBookViewModel;
         }
@@ -59,8 +54,7 @@ namespace LibraryService.Services.Implementation
             var userId = user.Identity.GetUserId();
 
             var booksCheckedOut = _context.PhysicalBooks
-                .Include(p => p.User)
-                .Where(b => b.Book.Id == bookId && b.User.Id == userId);
+                .Where(b => b.Book.Id == bookId && b.UserId == userId);
 
             if (booksCheckedOut != null && booksCheckedOut.Count() >= 3)
             {
@@ -85,7 +79,7 @@ namespace LibraryService.Services.Implementation
                 return null;
             }
 
-            physicalBook.User = await _manager.FindByIdAsync(userId);
+            physicalBook.UserId = userId;
             await _context.SaveChangesAsync();
 
             var checkedOutBook = new CheckedOutBookViewModel

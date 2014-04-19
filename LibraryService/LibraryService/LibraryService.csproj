@@ -229,15 +229,21 @@
     <Compile Include="Migrations\201404150413548_CheckoutBooks.Designer.cs">
       <DependentUpon>201404150413548_CheckoutBooks.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201404182025458_FixingPhysicalBook.cs" />
+    <Compile Include="Migrations\201404182025458_FixingPhysicalBook.Designer.cs">
+      <DependentUpon>201404182025458_FixingPhysicalBook.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Book.cs" />
+    <Compile Include="Models\BookRepository.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\PhysicalBook.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
+    <Compile Include="Services\DTO\CheckedOutBookDTO.cs" />
     <Compile Include="Services\Implementation\BooksService.cs" />
     <Compile Include="Services\Interfaces\IBooksService.cs" />
     <Compile Include="Startup.cs" />
@@ -319,6 +325,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201404150413548_CheckoutBooks.resx">
       <DependentUpon>201404150413548_CheckoutBooks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201404182025458_FixingPhysicalBook.resx">
+      <DependentUpon>201404182025458_FixingPhysicalBook.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -14,7 +14,7 @@ namespace LibraryService.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationsEnabled = false;
         }
 
         protected override void Seed(LibraryService.Models.ApplicationDbContext context)
