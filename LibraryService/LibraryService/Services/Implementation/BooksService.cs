@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
+using LibraryService.Services.DTO;
 using LibraryService.ViewModels;
 using LibraryService.Models;
 using Microsoft.AspNet.Identity;
@@ -24,10 +25,11 @@ namespace LibraryService.Services.Implementation
             _context = context;
         }
 
-        public IEnumerable<BookViewModel> GetAllBooks()
+        public async Task<IEnumerable<BookDTO>> GetAllBooks()
         {
+            var allBooks = await _repository.GetAllBooks();
 
-            return _context.Books.Select(b => new BookViewModel { Author = b.Author, Title = b.Title, Id = b.Id }).AsEnumerable();
+            return allBooks;
         }
 
         public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks(IPrincipal user)
@@ -41,7 +43,7 @@ namespace LibraryService.Services.Implementation
                         new CheckedOutBookViewModel
             {
                 Author = b.Author,
-                BookId = b.BookId,
+                BookId = b.BookId.Value,
                 Title = b.Title,
                 UserName = user.Identity.GetUserName()
             }).ToList();
@@ -49,56 +51,30 @@ namespace LibraryService.Services.Implementation
             return checkedOutBookViewModel;
         }
 
-        public async Task<CheckedOutBookViewModel> CheckOutBook(int bookId, IPrincipal user)
+        public async Task<CheckedOutBookDTO> CheckOutBook(int bookId, IPrincipal user)
         {
             var userId = user.Identity.GetUserId();
 
-            var booksCheckedOut = _context.PhysicalBooks
-                .Where(b => b.Book.Id == bookId && b.UserId == userId);
+            var booksCheckedOut = await _repository.GetCheckedOutBooks(userId);
 
             if (booksCheckedOut != null && booksCheckedOut.Count() >= 3)
             {
-                //return BadRequest("The users already has 3 books checked out");
-                return null;
+                return new CheckedOutBookDTO
+                {
+                    State = CheckedOutBookState.TooManyBooksCheckedOut
+                };
             }
 
-            var book = await _context.Books
+            var checkedOutBookDTO = await _repository.CheckoutBook(bookId, userId);
 
-                .FirstOrDefaultAsync(b => b.Id == bookId);
-            if (book == null)
-            {
-                //return NotFound();
-                return null;
-            }
-
-            var physicalBook = book.PhysicalBooks
-                .FirstOrDefault(p => p.User == null);
-            if (physicalBook == null)
-            {
-                //return BadRequest("Book is already checked out");
-                return null;
-            }
-
-            physicalBook.UserId = userId;
-            await _context.SaveChangesAsync();
-
-            var checkedOutBook = new CheckedOutBookViewModel
-            {
-                Author = book.Author,
-                BookId = book.Id,
-                Title = book.Title,
-                UserName = user.Identity.GetUserName()
-            };
-
-            return checkedOutBook;
+            return checkedOutBookDTO;
         }
 
         public async Task CheckInBook(int bookId, IPrincipal user)
         {
             var userId = user.Identity.GetUserId();
             var physicalBook = await _context.PhysicalBooks
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.User.Id == userId);
+                .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.UserId == userId);
             if (physicalBook == null)
             {
                 return;
@@ -106,7 +82,7 @@ namespace LibraryService.Services.Implementation
                 //return NotFound();
             }
 
-            physicalBook.User = null;
+            physicalBook.UserId = null;
             await _context.SaveChangesAsync();
         }
     }

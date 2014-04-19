@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
 using LibraryService.Models;
+using LibraryService.Services.DTO;
 using LibraryService.Services.Implementation;
 using LibraryService.ViewModels;
 using Microsoft.AspNet.Identity;
@@ -28,12 +29,21 @@ namespace LibraryService.Controllers
         {
             this.booksService = booksService;
         }
-        
+
         // GET: api/Books
         [AllowAnonymous]
-        public IEnumerable<BookViewModel> GetBooks()
+        public async Task<IEnumerable<BookViewModel>> GetBooks()
         {
-            return booksService.GetAllBooks();
+            var allBooks = await booksService.GetAllBooks();
+            var allBooksViewModel = allBooks.Select(b =>
+                new BookViewModel
+            {
+                Author = b.Author,
+                Title = b.Title,
+                BookId = b.BookId,
+                Available = b.Available
+            }).ToList();
+            return allBooksViewModel;
         }
 
 
@@ -57,8 +67,27 @@ namespace LibraryService.Controllers
             }
 
             var checkedOutBook = await booksService.CheckOutBook(bookId.Value, User);
+            if (checkedOutBook.State == CheckedOutBookState.TooManyBooksCheckedOut)
+            {
+                return BadRequest("User has too many books checked out");
+            }
 
-            return Ok(checkedOutBook);
+            if (checkedOutBook.State == CheckedOutBookState.BookIsNotAvailable)
+            {
+                return BadRequest("This book has no more copies to check out");
+            }
+
+            if (checkedOutBook.State == CheckedOutBookState.BookNotFound)
+            {
+                return BadRequest("This book does not exist at this library");
+            }
+
+            if (checkedOutBook.State != CheckedOutBookState.Valid)
+            {
+                return BadRequest("Unknown error");
+            }
+
+            return Created<CheckedOutBookViewModel>(string.Empty, null);
         }
 
         [Route("api/books/{bookId}/checkin/user")]

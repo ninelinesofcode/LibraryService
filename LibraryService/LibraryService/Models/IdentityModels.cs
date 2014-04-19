@@ -25,13 +25,14 @@ namespace LibraryService.Models
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public virtual DbSet<Book> Books { get; set; }
-        public virtual DbSet<PhysicalBook> PhysicalBooks { get; set; }
+        public DbSet<Book> Books { get; set; }
+        public DbSet<PhysicalBook> PhysicalBooks { get; set; }
 
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
             this.Database.Log = s => System.Diagnostics.Debug.WriteLine(s);
+            this.Configuration.LazyLoadingEnabled = false;
 
         }
 

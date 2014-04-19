@@ -1,4 +1,6 @@
 ﻿using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
+using System.Security.Cryptography;
 using LibraryService.Services.DTO;
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,34 @@ namespace LibraryService.Models
             _context = context;
         }
 
+        public async Task<BookDTO> GetBook(int bookId)
+        {
+            var book = await _context.Books.Select(b => new BookDTO
+            {
+                Author = b.Author,
+                Available = b.PhysicalBooks.Any(pb => pb.UserId == null),
+                BookId = b.Id,
+                Title = b.Title
+            }).FirstOrDefaultAsync();
+
+
+
+            return book;
+        }
+
+        public async Task<List<BookDTO>> GetAllBooks()
+        {
+            var allBooks = await _context.Books.Select(b => new BookDTO
+            {
+                Author = b.Author,
+                Available = b.PhysicalBooks.Any(pb => pb.UserId == null),
+                BookId = b.Id,
+                Title = b.Title
+            }).ToListAsync();
+
+            return allBooks;
+        }
+
         public Task<List<CheckedOutBookDTO>> GetCheckedOutBooks(string userId)
         {
             var booksCheckedOut = from b in _context.Books
@@ -33,6 +63,51 @@ namespace LibraryService.Models
                                   };
 
             return booksCheckedOut.ToListAsync();
+        }
+
+        public async Task<CheckedOutBookDTO> CheckoutBook(int bookId, string userId)
+        {
+            var bookToCheckOut = await _context.Books
+                .Include(b => b.PhysicalBooks)
+                .Where(pb => pb.Id == bookId)
+                .Select(b => new
+            {
+                BookId = b.Id,
+                Author = b.Author,
+                Title = b.Title,
+                PhysicalBook = b.PhysicalBooks.FirstOrDefault(pb => pb.UserId == null)
+            })
+                .FirstOrDefaultAsync();
+
+            if (bookToCheckOut == null)
+            {
+                return new CheckedOutBookDTO
+                {
+                    State = CheckedOutBookState.BookNotFound
+                };
+            }
+
+            var checkedOutBookDTO = new CheckedOutBookDTO
+            {
+                Author = bookToCheckOut.Author,
+                BookId = bookToCheckOut.BookId,
+                Title = bookToCheckOut.Title
+            };
+
+
+            var physicalBook = bookToCheckOut.PhysicalBook;
+            if (physicalBook == null)
+            {
+                checkedOutBookDTO.State = CheckedOutBookState.BookIsNotAvailable;
+                return checkedOutBookDTO;
+            }
+
+            physicalBook.UserId = userId;
+            await _context.SaveChangesAsync();
+            checkedOutBookDTO.State = CheckedOutBookState.Valid;
+            checkedOutBookDTO.PhysicalBookId = physicalBook.Id;
+
+            return checkedOutBookDTO;
         }
     }
 }

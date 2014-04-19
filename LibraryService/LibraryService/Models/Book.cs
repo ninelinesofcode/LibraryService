@@ -15,7 +15,7 @@ namespace LibraryService.Models
         [Required]
         public string Title { get; set; }
 
-        public virtual List<PhysicalBook> PhysicalBooks { get; set; }
+        public  virtual ICollection<PhysicalBook> PhysicalBooks { get; set; }
 
     }
 }
