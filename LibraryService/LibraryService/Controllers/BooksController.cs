@@ -99,7 +99,16 @@ namespace LibraryService.Controllers
                 return BadRequest("Invalid bookId");
             }
 
-            await booksService.CheckInBook(bookId.Value, User);
+            var checkInBookDTO = await booksService.CheckInBook(bookId.Value, User);
+            if (checkInBookDTO.State == CheckInBookDTO.CheckedInBookState.BookNotFound)
+            {
+                return BadRequest(string.Format("{0} is not checked out to the user", bookId));
+            }
+
+            if (checkInBookDTO.State != CheckInBookDTO.CheckedInBookState.Valid)
+            {
+                return BadRequest("Bad Request");
+            }
             return Ok();
         }
     }

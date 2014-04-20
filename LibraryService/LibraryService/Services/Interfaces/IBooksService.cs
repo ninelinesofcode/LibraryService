@@ -11,6 +11,6 @@ namespace LibraryService.Services.Implementation
         Task<IEnumerable<BookDTO>> GetAllBooks();
         Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks(IPrincipal user);
         Task<CheckedOutBookDTO> CheckOutBook(int bookId, IPrincipal user);
-        Task CheckInBook(int bookId, IPrincipal user);
+        Task<CheckInBookDTO> CheckInBook(int bookId, IPrincipal user);
     }
 }

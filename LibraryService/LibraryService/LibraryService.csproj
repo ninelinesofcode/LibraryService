@@ -245,6 +245,7 @@
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Services\DTO\BookDTO.cs" />
     <Compile Include="Services\DTO\CheckedOutBookDTO.cs" />
+    <Compile Include="Services\DTO\CheckinBookDTO.cs" />
     <Compile Include="Services\Implementation\BooksService.cs" />
     <Compile Include="Services\Interfaces\IBooksService.cs" />
     <Compile Include="Startup.cs" />

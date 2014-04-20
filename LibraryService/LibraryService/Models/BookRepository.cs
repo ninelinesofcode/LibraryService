@@ -109,5 +109,24 @@ namespace LibraryService.Models
 
             return checkedOutBookDTO;
         }
+
+        public async Task<CheckInBookDTO> CheckinBook(int bookId, string userId)
+        {
+            var checkInBookDTO = new CheckInBookDTO();
+
+            var physicalBook = await _context.PhysicalBooks
+                .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.UserId == userId);
+            if (physicalBook == null)
+            {
+                checkInBookDTO.State= CheckInBookDTO.CheckedInBookState.BookNotFound;
+                return checkInBookDTO;
+            }
+
+            physicalBook.UserId = null;
+            await _context.SaveChangesAsync();
+            checkInBookDTO.State= CheckInBookDTO.CheckedInBookState.Valid;
+            
+            return checkInBookDTO;
+        }
     }
 }

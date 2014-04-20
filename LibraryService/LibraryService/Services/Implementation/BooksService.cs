@@ -70,20 +70,12 @@ namespace LibraryService.Services.Implementation
             return checkedOutBookDTO;
         }
 
-        public async Task CheckInBook(int bookId, IPrincipal user)
+        public async Task<CheckInBookDTO> CheckInBook(int bookId, IPrincipal user)
         {
             var userId = user.Identity.GetUserId();
-            var physicalBook = await _context.PhysicalBooks
-                .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.UserId == userId);
-            if (physicalBook == null)
-            {
-                return;
+            var checkInBookDTO = await _repository.CheckinBook(bookId, userId);
+            return checkInBookDTO;
 
-                //return NotFound();
-            }
-
-            physicalBook.UserId = null;
-            await _context.SaveChangesAsync();
         }
     }
 }
