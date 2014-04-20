@@ -32,7 +32,7 @@ namespace LibraryService.Services.Implementation
 
         public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks(IPrincipal user)
         {
-            var currentUserId = user.Identity.GetUserId();
+            var currentUserId = user.Identity.Name;
             var booksCheckedOut = await _repository.GetCheckedOutBooks(currentUserId);
 
             var checkedOutBookViewModel =
@@ -43,7 +43,7 @@ namespace LibraryService.Services.Implementation
                 Author = b.Author,
                 BookId = b.BookId.Value,
                 Title = b.Title,
-                UserName = user.Identity.GetUserName()
+                UserName = user.Identity.Name
             }).ToList();
 
             return checkedOutBookViewModel;
