@@ -250,6 +250,8 @@
     <Compile Include="Services\DTO\CheckedOutBookDTO.cs" />
     <Compile Include="Services\DTO\CheckinBookDTO.cs" />
     <Compile Include="Services\Implementation\BooksService.cs" />
+    <Compile Include="Services\Interfaces\IUserService.cs" />
+    <Compile Include="Services\Implementation\UserService.cs" />
     <Compile Include="Services\Interfaces\IBooksService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModels\BookViewModel.cs" />

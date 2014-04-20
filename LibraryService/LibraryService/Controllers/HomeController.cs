@@ -8,6 +8,7 @@ namespace LibraryService.Controllers
 {
     public class HomeController : Controller
     {
+        [AllowAnonymous]
         public ActionResult Index()
         {
             ViewBag.Title = "Home Page";

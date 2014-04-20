@@ -20,11 +20,10 @@ using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace LibraryService.Controllers
 {
-    [Authorize]
     public class BooksController : ApiController
     {
         private IBooksService booksService;
-
+        
         public BooksController(IBooksService booksService)
         {
             this.booksService = booksService;
@@ -49,7 +48,7 @@ namespace LibraryService.Controllers
         [Route("api/user/books")]
         public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks()
         {
-            var checkedOutBookViewModel = await booksService.GetCheckedOutBooks(User);
+            var checkedOutBookViewModel = await booksService.GetCheckedOutBooks();
 
             return checkedOutBookViewModel;
         }
@@ -63,7 +62,7 @@ namespace LibraryService.Controllers
                 return BadRequest("Invalid bookId");
             }
 
-            var checkedOutBook = await booksService.CheckOutBook(bookId.Value, User);
+            var checkedOutBook = await booksService.CheckOutBook(bookId.Value);
             if (checkedOutBook.State == CheckedOutBookState.TooManyBooksCheckedOut)
             {
                 return BadRequest("User has too many books checked out");
@@ -98,7 +97,7 @@ namespace LibraryService.Controllers
                 return BadRequest("Invalid bookId");
             }
 
-            var checkInBookDTO = await booksService.CheckInBook(bookId.Value, User);
+            var checkInBookDTO = await booksService.CheckInBook(bookId.Value);
             if (checkInBookDTO.State == CheckInBookDTO.CheckedInBookState.BookNotFound)
             {
                 return BadRequest(string.Format("{0} is not checked out to the user", bookId));

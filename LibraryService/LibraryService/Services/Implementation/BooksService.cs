@@ -16,10 +16,11 @@ namespace LibraryService.Services.Implementation
     public class BooksService : IBooksService
     {
         private IBookRepository _repository;
+        private IUserService _userService;
 
-
-        public BooksService(IBookRepository repository)
+        public BooksService(IBookRepository repository, IUserService userService)
         {
+            _userService = userService;
             _repository = repository;
         }
 
@@ -30,9 +31,9 @@ namespace LibraryService.Services.Implementation
             return allBooks;
         }
 
-        public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks(IPrincipal user)
+        public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks()
         {
-            var currentUserId = user.Identity.Name;
+            var currentUserId = _userService.UserId;
             var booksCheckedOut = await _repository.GetCheckedOutBooks(currentUserId);
 
             var checkedOutBookViewModel =
@@ -43,20 +44,20 @@ namespace LibraryService.Services.Implementation
                 Author = b.Author,
                 BookId = b.BookId.Value,
                 Title = b.Title,
-                UserName = user.Identity.Name
+                UserName = _userService.UserName
             }).ToList();
 
             return checkedOutBookViewModel;
         }
 
-        public async Task<CheckedOutBookDTO> CheckOutBook(int bookId, IPrincipal user)
+        public async Task<CheckedOutBookDTO> CheckOutBook(int bookId)
         {
-            var userId = user.Identity.GetUserId();
+            var userId = _userService.UserId;
 
             var book = await _repository.GetBook(bookId);
             if (book == null)
             {
-                return new CheckedOutBookDTO {State = CheckedOutBookState.BookNotFound};
+                return new CheckedOutBookDTO { State = CheckedOutBookState.BookNotFound };
             }
 
             var checkedOutBookDTO = new CheckedOutBookDTO
@@ -77,7 +78,7 @@ namespace LibraryService.Services.Implementation
             var physicalBookToCheckOut = book.PhysicalBooks.FirstOrDefault(pb => pb.UserId == null);
             if (physicalBookToCheckOut == null)
             {
-                checkedOutBookDTO.State= CheckedOutBookState.BookIsNotAvailable;
+                checkedOutBookDTO.State = CheckedOutBookState.BookIsNotAvailable;
                 return checkedOutBookDTO;
             }
 
@@ -88,9 +89,9 @@ namespace LibraryService.Services.Implementation
             return checkedOutBookDTO;
         }
 
-        public async Task<CheckInBookDTO> CheckInBook(int bookId, IPrincipal user)
+        public async Task<CheckInBookDTO> CheckInBook(int bookId)
         {
-            var userId = user.Identity.GetUserId();
+            var userId = _userService.UserId;
             var checkInBookDTO = await _repository.CheckinBook(bookId, userId);
             return checkInBookDTO;
 

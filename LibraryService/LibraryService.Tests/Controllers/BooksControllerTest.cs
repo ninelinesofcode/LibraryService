@@ -31,7 +31,7 @@ namespace LibraryService.Tests.Controllers
         public async Task CheckedOutBooksReturnsTooManyBooksCheckedOut()
         {
             var bookServiceMock = new Mock<IBooksService>();
-            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>()))
                 .ReturnsAsync(new CheckedOutBookDTO { State = CheckedOutBookState.TooManyBooksCheckedOut });
 
 
@@ -46,7 +46,9 @@ namespace LibraryService.Tests.Controllers
         public async Task CheckedOutBooksReturnsBookIsNotAvailable()
         {
             var bookServiceMock = new Mock<IBooksService>();
-            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            var userServiceMock = new Mock<IUserService>();
+
+            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>()))
                 .ReturnsAsync(new CheckedOutBookDTO { State = CheckedOutBookState.BookIsNotAvailable });
 
 
@@ -61,7 +63,7 @@ namespace LibraryService.Tests.Controllers
         public async Task CheckedOutBooksReturnsBookNotFound()
         {
             var bookServiceMock = new Mock<IBooksService>();
-            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>()))
                 .ReturnsAsync(new CheckedOutBookDTO { State = CheckedOutBookState.BookNotFound });
 
 
@@ -80,7 +82,7 @@ namespace LibraryService.Tests.Controllers
             {
                 State = CheckedOutBookState.Success
             };
-            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            bookServiceMock.Setup(bs => bs.CheckOutBook(It.IsAny<int>()))
                 .ReturnsAsync(checkedOutBook);
 
 
@@ -106,7 +108,7 @@ namespace LibraryService.Tests.Controllers
         public async Task CheckInBookReturnsBadRequestWhenBookNotFound()
         {
             var bookServiceMock = new Mock<IBooksService>();
-            bookServiceMock.Setup(bs => bs.CheckInBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            bookServiceMock.Setup(bs => bs.CheckInBook(It.IsAny<int>()))
                 .ReturnsAsync(new CheckInBookDTO
             {
                 State = CheckInBookDTO.CheckedInBookState.BookNotFound
@@ -123,7 +125,7 @@ namespace LibraryService.Tests.Controllers
         public async Task CheckInBookReturnsOkWhenSuccess()
         {
             var bookServiceMock = new Mock<IBooksService>();
-            bookServiceMock.Setup(bs => bs.CheckInBook(It.IsAny<int>(), It.IsAny<IPrincipal>()))
+            bookServiceMock.Setup(bs => bs.CheckInBook(It.IsAny<int>()))
                 .ReturnsAsync(new CheckInBookDTO
             {
                 State = CheckInBookDTO.CheckedInBookState.Success
