@@ -72,6 +72,7 @@ namespace LibraryService.App_Start
             kernel.Bind<ApplicationDbContext>().To<ApplicationDbContext>().InRequestScope();
             kernel.Bind<IUserStore<ApplicationUser>>().To<UserStore<ApplicationUser>>().InRequestScope();
             kernel.Bind<UserManager<ApplicationUser>>().To<UserManager<ApplicationUser>>().InRequestScope();
+            kernel.Bind<IBookRepository>().To<BookRepository>().InRequestScope();
         }        
     }
 }

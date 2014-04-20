@@ -15,14 +15,12 @@ namespace LibraryService.Services.Implementation
 {
     public class BooksService : IBooksService
     {
-        private readonly ApplicationDbContext _context;
-        private BookRepository _repository;
+        private IBookRepository _repository;
 
 
-        public BooksService(ApplicationDbContext context, BookRepository repository)
+        public BooksService(IBookRepository repository)
         {
             _repository = repository;
-            _context = context;
         }
 
         public async Task<IEnumerable<BookDTO>> GetAllBooks()
@@ -55,17 +53,37 @@ namespace LibraryService.Services.Implementation
         {
             var userId = user.Identity.GetUserId();
 
+            var book = await _repository.GetBook(bookId);
+            if (book == null)
+            {
+                return new CheckedOutBookDTO {State = CheckedOutBookState.BookNotFound};
+            }
+
+            var checkedOutBookDTO = new CheckedOutBookDTO
+            {
+                Author = book.Author,
+                BookId = book.BookId,
+                Title = book.Title
+            };
+
             var booksCheckedOut = await _repository.GetCheckedOutBooks(userId);
 
             if (booksCheckedOut != null && booksCheckedOut.Count() >= 3)
             {
-                return new CheckedOutBookDTO
-                {
-                    State = CheckedOutBookState.TooManyBooksCheckedOut
-                };
+                checkedOutBookDTO.State = CheckedOutBookState.TooManyBooksCheckedOut;
+                return checkedOutBookDTO;
             }
 
-            var checkedOutBookDTO = await _repository.CheckoutBook(bookId, userId);
+            var physicalBookToCheckOut = book.PhysicalBooks.FirstOrDefault(pb => pb.UserId == null);
+            if (physicalBookToCheckOut == null)
+            {
+                checkedOutBookDTO.State= CheckedOutBookState.BookIsNotAvailable;
+                return checkedOutBookDTO;
+            }
+
+            await _repository.CheckoutBook(physicalBookToCheckOut, userId);
+            checkedOutBookDTO.State = CheckedOutBookState.Success;
+            checkedOutBookDTO.PhysicalBookId = physicalBookToCheckOut.Id;
 
             return checkedOutBookDTO;
         }

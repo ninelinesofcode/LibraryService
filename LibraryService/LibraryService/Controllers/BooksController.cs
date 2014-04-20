@@ -82,7 +82,7 @@ namespace LibraryService.Controllers
                 return BadRequest("This book does not exist at this library");
             }
 
-            if (checkedOutBook.State != CheckedOutBookState.Valid)
+            if (checkedOutBook.State != CheckedOutBookState.Success)
             {
                 return BadRequest("Unknown error");
             }
@@ -105,7 +105,7 @@ namespace LibraryService.Controllers
                 return BadRequest(string.Format("{0} is not checked out to the user", bookId));
             }
 
-            if (checkInBookDTO.State != CheckInBookDTO.CheckedInBookState.Valid)
+            if (checkInBookDTO.State != CheckInBookDTO.CheckedInBookState.Success)
             {
                 return BadRequest("Bad Request");
             }

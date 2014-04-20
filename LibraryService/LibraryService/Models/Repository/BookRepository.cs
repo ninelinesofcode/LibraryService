@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LibraryService.Models
 {
-    public class BookRepository
+    public class BookRepository : IBookRepository
     {
         private ApplicationDbContext _context;
 
@@ -21,15 +21,16 @@ namespace LibraryService.Models
 
         public async Task<BookDTO> GetBook(int bookId)
         {
-            var book = await _context.Books.Select(b => new BookDTO
+            var book = await _context.Books
+                .Where(b => b.Id == bookId)
+                .Select(b => new BookDTO
             {
                 Author = b.Author,
                 Available = b.PhysicalBooks.Any(pb => pb.UserId == null),
                 BookId = b.Id,
-                Title = b.Title
+                Title = b.Title,
+                PhysicalBooks = b.PhysicalBooks
             }).FirstOrDefaultAsync();
-
-
 
             return book;
         }
@@ -59,55 +60,16 @@ namespace LibraryService.Models
                                       BookId = b.Id,
                                       PhysicalBookId = pb.Id,
                                       Title = b.Title,
-                                      State = CheckedOutBookState.Valid
+                                      State = CheckedOutBookState.Success
                                   };
 
             return booksCheckedOut.ToListAsync();
         }
 
-        public async Task<CheckedOutBookDTO> CheckoutBook(int bookId, string userId)
+        public async Task CheckoutBook(PhysicalBook physicalBook, string userId)
         {
-            var bookToCheckOut = await _context.Books
-                .Include(b => b.PhysicalBooks)
-                .Where(pb => pb.Id == bookId)
-                .Select(b => new
-            {
-                BookId = b.Id,
-                Author = b.Author,
-                Title = b.Title,
-                PhysicalBook = b.PhysicalBooks.FirstOrDefault(pb => pb.UserId == null)
-            })
-                .FirstOrDefaultAsync();
-
-            if (bookToCheckOut == null)
-            {
-                return new CheckedOutBookDTO
-                {
-                    State = CheckedOutBookState.BookNotFound
-                };
-            }
-
-            var checkedOutBookDTO = new CheckedOutBookDTO
-            {
-                Author = bookToCheckOut.Author,
-                BookId = bookToCheckOut.BookId,
-                Title = bookToCheckOut.Title
-            };
-
-
-            var physicalBook = bookToCheckOut.PhysicalBook;
-            if (physicalBook == null)
-            {
-                checkedOutBookDTO.State = CheckedOutBookState.BookIsNotAvailable;
-                return checkedOutBookDTO;
-            }
-
             physicalBook.UserId = userId;
             await _context.SaveChangesAsync();
-            checkedOutBookDTO.State = CheckedOutBookState.Valid;
-            checkedOutBookDTO.PhysicalBookId = physicalBook.Id;
-
-            return checkedOutBookDTO;
         }
 
         public async Task<CheckInBookDTO> CheckinBook(int bookId, string userId)
@@ -118,14 +80,14 @@ namespace LibraryService.Models
                 .FirstOrDefaultAsync(b => b.Book.Id == bookId && b.UserId == userId);
             if (physicalBook == null)
             {
-                checkInBookDTO.State= CheckInBookDTO.CheckedInBookState.BookNotFound;
+                checkInBookDTO.State = CheckInBookDTO.CheckedInBookState.BookNotFound;
                 return checkInBookDTO;
             }
 
             physicalBook.UserId = null;
             await _context.SaveChangesAsync();
-            checkInBookDTO.State= CheckInBookDTO.CheckedInBookState.Valid;
-            
+            checkInBookDTO.State = CheckInBookDTO.CheckedInBookState.Success;
+
             return checkInBookDTO;
         }
     }

@@ -9,7 +9,7 @@ namespace LibraryService.Services.DTO
     {
         public enum CheckedInBookState
         {
-            Valid,
+            Success,
             BookNotFound
         }
 

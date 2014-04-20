@@ -7,7 +7,7 @@ namespace LibraryService.Services.DTO
 {
     public enum CheckedOutBookState
     {
-        Valid,
+        Success,
         BookNotFound,
         TooManyBooksCheckedOut,
         BookIsNotAvailable
