@@ -46,17 +46,14 @@ namespace LibraryService.Controllers
             return allBooksViewModel;
         }
 
-
-        [ResponseType(typeof(IEnumerable<CheckedOutBookViewModel>))]
         [Route("api/user/books")]
-        public async Task<IHttpActionResult> GetCheckedOutBooks()
+        public async Task<IEnumerable<CheckedOutBookViewModel>> GetCheckedOutBooks()
         {
             var checkedOutBookViewModel = await booksService.GetCheckedOutBooks(User);
 
-            return Ok(checkedOutBookViewModel);
+            return checkedOutBookViewModel;
         }
-
-        [ResponseType(typeof(CheckedOutBookViewModel))]
+        
         [Route("api/books/{bookId}/checkout/user")]
         [HttpPost]
         public async Task<IHttpActionResult> CheckoutBook(int? bookId)
@@ -87,7 +84,9 @@ namespace LibraryService.Controllers
                 return BadRequest("Unknown error");
             }
 
-            return Created<CheckedOutBookViewModel>(string.Empty, null);
+            //Should return Created but not sure where it should point to
+            //return Created<CheckedOutBookViewModel>(string.Empty, null);
+            return Ok();
         }
 
         [Route("api/books/{bookId}/checkin/user")]
